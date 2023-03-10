@@ -82,9 +82,12 @@ def make_env(environment_name,
     env_config_dict["env_args"]["map_name"] = map_name
     env_config_dict["force_coop"] = force_coop
     env_config = Env(env_config_dict)
+    
+    
 
     # set ray config
     env_config = env_config.set_ray()
+    
 
     # initialize env
     env_reg_ls = []
@@ -112,13 +115,15 @@ def make_env(environment_name,
 
     env_reg_name = env_config["env"] + "_" + env_config["env_args"]["map_name"]
 
+    
+    
     if env_config["force_coop"]:
         register_env(env_reg_name, lambda _: COOP_ENV_REGISTRY[env_config["env"]](env_config["env_args"]))
         env = COOP_ENV_REGISTRY[env_config["env"]](env_config["env_args"])
     else:
         register_env(env_reg_name, lambda _: ENV_REGISTRY[env_config["env"]](env_config["env_args"]))
         env = ENV_REGISTRY[env_config["env"]](env_config["env_args"])
-
+    
     return env, env_config
 
 
@@ -237,15 +242,18 @@ class _Algo:
     def fit(self, env, model, stop=None, **running_params):
 
         env_instance, info = env
+        
         model_class, model_info = model
 
         self.config_dict = info
+        
         self.config_dict = recursive_dict_update(self.config_dict, model_info)
 
         self.config_dict = recursive_dict_update(self.config_dict, self.algo_parameters)
         self.config_dict = recursive_dict_update(self.config_dict, running_params)
 
         self.config_dict['algorithm'] = self.name
+        
 
         if self.algo_type == "IL":
             run_il(self.config_dict, env_instance, model_class, stop=stop)

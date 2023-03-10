@@ -16,6 +16,7 @@ def run_cc(algo_config, env, model, stop=None):
     ########################
 
     env_config = env.get_env_info()
+    
     map_name = algo_config['env_args']['map_name']
     agent_name_ls = env.agents
     env_config["agent_name_ls"] = agent_name_ls
@@ -24,9 +25,9 @@ def run_cc(algo_config, env, model, stop=None):
     ######################
     ### policy sharing ###
     ######################
-
+    
     policy_mapping_info = env_config["policy_mapping_info"]
-
+    
     if "all_scenario" in policy_mapping_info:
         policy_mapping_info = policy_mapping_info["all_scenario"]
     else:
