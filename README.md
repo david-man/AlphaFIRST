@@ -1,367 +1,325 @@
-
-
 <div align="center">
-<img src=image/logo1.png width=70% />
+<img src=docs/source/images/logo1.png width=65% />
 </div>
 
-<h1 align="center"> MARLlib: The MARL Extension for RLlib </h1>
+<h1 align="center"> MARLlib: An Extensive Multi-agent Reinforcement Learning Library </h1>
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)]()
+![test](https://github.com/Replicable-MARL/MARLlib/workflows/test/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/marllib/badge/?version=latest)](https://marllib.readthedocs.io/en/latest/)
+[![GitHub issues](https://img.shields.io/github/issues/Replicable-MARL/MARLlib)](https://github.com/Replicable-MARL/MARLlib/issues)
+[![GitHub stars](https://img.shields.io/github/stars/Replicable-MARL/MARLlib)](https://github.com/Replicable-MARL/MARLlib/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Replicable-MARL/MARLlib)](https://github.com/Replicable-MARL/MARLlib/network)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Replicable-MARL/MARLlib/blob/sy_dev/marllib.ipynb)
+[![PyPI version](https://badge.fury.io/py/marllib.svg)](https://badge.fury.io/py/marllib)
 
-**Multi-Agent RLlib (MARLlib)** is ***a comprehensive Multi-Agent Reinforcement Learning algorithm library*** based on [**Ray**](https://github.com/ray-project/ray) and one of its toolkits [**RLlib**](https://github.com/ray-project/ray/tree/master/rllib). It provides MARL research community with a unified platform for building, training, and evaluating MARL algorithms.
+**Multi-agent Reinforcement Learning Library ([MARLlib](https://arxiv.org/abs/2210.13708))** is ***a MARL library*** based
+on [**Ray**](https://github.com/ray-project/ray) and one of its toolkits [**RLlib**](https://github.com/ray-project/ray/tree/master/rllib). It provides the MARL research community a unified
+platform for building, training, and evaluating MARL algorithms on almost all diverse tasks and environments.
 
-There are four core features of **MARLlib**.
+A simple case of MARLlib usage:
 
-- It unifies diverse algorithm pipeline with a newly proposed agent-level distributed dataflow. Currently, MARLlib delivers 18 algorithms and is able to handle cooperative (team-reward-only cooperation), collaborative (individual-reward-accessible cooperation), competitive (individual competition), and mixed (teamwork-based competition) tasks.
-- It unifies multi-agent environment interfaces with a new interface following Gym standard and supports both synchronous and asynchronous agent-environment interaction. Currently, MARLlib provides support to ten environments.
-- It provides three parameter sharing strategies, namely full-sharing, non-sharing, and group-sharing, by implementing the policy mapping API of RLlib. This is implemented to be fully decoupled from algorithms and environments, and is completely controlled by configuration files.
-- It provides standard 2 or 20 millions timesteps learning curve in the form of CSV of each task-algorithm for reference. These results are reproducible as configuration files for each experiment are provided along. In total, more than a thousand experiments are conducted and released. 
+```py
+from marllib import marl
+
+# prepare env
+env = marl.make_env(environment_name="mpe", map_name="simple_spread")
+
+# initialize algorithm with appointed hyper-parameters
+mappo = marl.algos.mappo(hyperparam_source='mpe')
+
+# build agent model based on env + algorithms + user preference
+model = marl.build_model(env, mappo, {"core_arch": "gru", "encode_layer": "128-256"})
+
+# start training
+mappo.fit(env, model, stop={'timesteps_total': 1000000}, share_policy='group')
+
+# ready to control
+mappo.render(env, model, share_policy='group', restore_path='path_to_checkpoint')
+```
+
+## Why MARLlib?
+
+Here we provide a table for the comparison of MARLlib and existing work.
+
+|   Library   | Github Stars | Supported Env | Algorithm | Parameter Sharing  | Model | Documentation
+|:-------------:|:-------------:|:-------------:|:-------------:|:--------------:|:----------------:|:-----------------:|
+|     [PyMARL](https://github.com/oxwhirl/pymarl) | [![GitHub stars](https://img.shields.io/github/stars/oxwhirl/pymarl)](https://github.com/oxwhirl/pymarl/stargazers)    |       1 cooperative       |       5       |         share        |      GRU           | :x:
+|   [PyMARL2](https://github.com/hijkzzz/pymarl2)| [![GitHub stars](https://img.shields.io/github/stars/hijkzzz/pymarl2)](https://github.com/hijkzzz/pymarl2)       |       2 cooperative       |     11   |         share        |  MLP + GRU  | :x:
+| [MAPPO Benchmark](https://github.com/marlbenchmark/on-policy)| [![GitHub stars](https://img.shields.io/github/stars/marlbenchmark/on-policy)](https://github.com/marlbenchmark/on-policy/stargazers)    |       4 cooperative       |      1     |          share + separate        |          MLP + GRU        |         :x:              |
+| [MAlib](https://github.com/sjtu-marl/malib) | [![GitHub stars](https://img.shields.io/github/stars/sjtu-marl/malib)](https://github.com/hijkzzz/sjtu-marl/malib/stargazers) | 4 self-play  | 10 | share + group + separate | MLP + LSTM | [![Documentation Status](https://readthedocs.org/projects/malib/badge/?version=latest)](https://malib.readthedocs.io/en/latest/?badge=latest)
+|    [EPyMARL](https://github.com/uoe-agents/epymarl)| [![GitHub stars](https://img.shields.io/github/stars/uoe-agents/epymarl)](https://github.com/hijkzzz/uoe-agents/epymarl/stargazers)         |       4 cooperative      |    9    |        share + separate       |      GRU             |           :x:            |
+|    [MARLlib](https://github.com/Replicable-MARL/MARLlib)|  [![GitHub stars](https://img.shields.io/github/stars/Replicable-MARL/MARLlib)](https://github.com/Replicable-MARL/MARLlib/stargazers)  |       10 **no task mode restriction**     |    18     |   share + group + separate + **customizable**         |         MLP + CNN + GRU + LSTM          |           [![Documentation Status](https://readthedocs.org/projects/marllib/badge/?version=latest)](https://marllib.readthedocs.io/en/latest/) |
+
+
+[comment]: <> (<div align="center">)
+
+[comment]: <> (<img src=docs/source/images/overview.png width=100% />)
+
+[comment]: <> (</div>)
+
+## key features
+
+:beginner: What **MARLlib** brings to MARL community:
+
+- it unifies diverse algorithm pipelines with agent-level distributed dataflow.
+- it supports all task modes: cooperative, collaborative, competitive, and mixed.
+- it unifies multi-agent environment interfaces with a new interface following Gym.
+- it provides flexible and customizable parameter-sharing strategies.
+
+:rocket: With MARLlib, you can exploit the advantages not limited to:
+
+- **zero knowledge of MARL**: out of the box 18 algorithms with intuitive API!
+- **all task modes available**: support almost all multi-agent environment!
+- **customizable model arch**: pick your favorite one from the model zoo!
+- **customizable policy sharing**: grouped by MARLlib or build your own!
+- more than a thousand experiments are conducted and released!
+
+## Installation
+
+> __Note__:
+> MARLlib supports Linux only.
+
+### Step-by-step  (recommended)
+
+- install dependencies
+- install environments
+- install patches
+
+#### 1. install dependencies (basic)
+
+First, install MARLlib dependencies to guarantee basic usage.
+following [this guide](https://marllib.readthedocs.io/en/latest/handbook/env.html), finally install patches for RLlib.
+
+```bash
+$ conda create -n marllib python=3.8
+$ conda activate marllib
+$ git clone https://github.com/Replicable-MARL/MARLlib.git && cd MARLlib
+$ pip install -r requirements.txt
+```
+
+#### 2. install environments (optional)
+
+Please follow [this guide](https://marllib.readthedocs.io/en/latest/handbook/env.html).
+
+#### 3. install patches (basic)
+
+Fix bugs of RLlib using patches by running the following command:
+
+```bash
+$ cd /Path/To/MARLlib/marl/patch
+$ python add_patch.py -y
+```
+
+### PyPI
+
+```bash
+$ pip install --upgrade pip
+$ pip install marllib
+```
+
+## Getting started
+
+<details>
+<summary><b><big>Prepare the configuration</big></b></summary>
+
+There are four parts of configurations that take charge of the whole training process.
+
+- scenario: specify the environment/task settings
+- algorithm: choose the hyperparameters of the algorithm
+- model: customize the model architecture
+- ray/rllib: change the basic training settings
 
 <div align="center">
-<img src=image/overview.png width=100% />
+<img src=docs/source/images/configurations.png width=100% />
 </div>
 
-## Overview
+Before training, ensure all the parameters are set correctly, especially those you don't want to change.
+> __Note__:
+> You can also modify all the pre-set parameters via MARLLib API.*
 
-### Environments
+</details>
+
+<details>
+<summary><b><big>Register the environment</big></b></summary>
+
+Ensure all the dependencies are installed for the environment you are running with. Otherwise, please refer to
+[MARLlib documentation](https://marllib.readthedocs.io/en/latest/handbook/env.html).
+
+
+|   task mode   | api example |
+| :-----------: | ----------- |
+| cooperative | ```marl.make_env(environment_name="mpe", map_name="simple_spread", force_coop=True)``` |
+| collaborative | ```marl.make_env(environment_name="mpe", map_name="simple_spread")``` |
+| competitive | ```marl.make_env(environment_name="mpe", map_name="simple_adversary")``` |
+| mixed | ```marl.make_env(environment_name="mpe", map_name="simple_crypto")``` |
 
 Most of the popular environments in MARL research are supported by MARLlib:
 
 | Env Name | Learning Mode | Observability | Action Space | Observations |
-| ----------- | ----------- | ----------- | ----------- | ----------- |
-| [LBF](https://github.com/semitable/lb-foraging)  | cooperative + collaborative | Both | Discrete | Discrete  |
-| [RWARE](https://github.com/semitable/robotic-warehouse)  | cooperative | Partial | Discrete | Discrete  |
-| [MPE](https://github.com/openai/multiagent-particle-envs)  | cooperative + collaborative + mixed | Both | Both | Continuous  |
-| [SMAC](https://github.com/oxwhirl/smac)  | cooperative | Partial | Discrete | Continuous |
-| [MetaDrive](https://github.com/decisionforce/metadrive)  | collaborative | Partial | Continuous | Continuous |
-|[MAgent](https://www.pettingzoo.ml/magent) | collaborative + mixed | Partial | Discrete | Discrete |
-| [Pommerman](https://github.com/MultiAgentLearning/playground)  | collaborative + competitive + mixed | Both | Discrete | Discrete |
-| [MAMuJoCo](https://github.com/schroederdewitt/multiagent_mujoco)  | cooperative | Partial | Continuous | Continuous |
-| [GRF](https://github.com/google-research/football)  | collaborative + mixed | Full | Discrete | Continuous |
-| [Hanabi](https://github.com/deepmind/hanabi-learning-environment) | cooperative | Partial | Discrete | Discrete |
+| :-----------: | :-----------: | :-----------: | :-----------: | :-----------: |
+| **[LBF](https://github.com/semitable/lb-foraging)**  | cooperative + collaborative | Both | Discrete | 1D  |
+| **[RWARE](https://github.com/semitable/robotic-warehouse)**  | cooperative | Partial | Discrete | 1D  |
+| **[MPE](https://github.com/openai/multiagent-particle-envs)**  | cooperative + collaborative + mixed | Both | Both | 1D  |
+| **[SMAC](https://github.com/oxwhirl/smac)**  | cooperative | Partial | Discrete | 1D |
+| **[MetaDrive](https://github.com/decisionforce/metadrive)**  | collaborative | Partial | Continuous | 1D |
+| **[MAgent](https://www.pettingzoo.ml/magent)** | collaborative + mixed | Partial | Discrete | 2D |
+| **[Pommerman](https://github.com/MultiAgentLearning/playground)**  | collaborative + competitive + mixed | Both | Discrete | 2D |
+| **[MAMuJoCo](https://github.com/schroederdewitt/multiagent_mujoco)**  | cooperative | Partial | Continuous | 1D |
+| **[GRF](https://github.com/google-research/football)**  | collaborative + mixed | Full | Discrete | 2D |
+| **[Hanabi](https://github.com/deepmind/hanabi-learning-environment)** | cooperative | Partial | Discrete | 1D |
 
-Each environment has a readme file, standing as the instruction for this task, talking about env settings, installation, and some important notes.
+Each environment has a readme file, standing as the instruction for this task, including env settings, installation, and
+important notes.
+</details>
+
+<details>
+<summary><b><big>Initialize the algorithm</big></b></summary>
 
 
-### Algorithms
-
-We provide three types of MARL algorithms as our baselines including:
-
-**Independent Learning:** 
-IQL
-DDPG
-PG
-A2C
-TRPO
-PPO
-
-**Centralized Critic:**
-COMA 
-MADDPG 
-MAAC 
-MAPPO
-MATRPO
-HATRPO
-HAPPO
-
-**Value Decomposition:**
-VDN
-QMIX
-FACMAC
-VDAC
-VDPPO
+|  running target   | api example |
+| :-----------: | ----------- |
+| train & finetune  | ```marl.algos.mappo(hyperparam_source=$ENV)``` |
+| develop & debug | ```marl.algos.mappo(hyperparam_source="test")``` |
+| 3rd party env | ```marl.algos.mappo(hyperparam_source="common")``` |
 
 Here is a chart describing the characteristics of each algorithm:
 
-| Algorithm                                                    | Support Task Mode | Need Central Information | Discrete Action   | Continuous Action | Learning Categorize        | Type       |
-| ------------------------------------------------------------ | ----------------- | ----------------- | ---------- | -------------------- | ---------- | ---------- |
-| IQL*                                                         | cooperative collaborative competitive mixed             |                 | :heavy_check_mark:   |    | Independent Learning | Off Policy |
-| [PG](https://papers.nips.cc/paper/1713-policy-gradient-methods-for-reinforcement-learning-with-function-approximation.pdf) | cooperative collaborative competitive mixed             |                 | :heavy_check_mark:       | :heavy_check_mark:   | Independent Learning | On Policy  |
-| [A2C](https://arxiv.org/abs/1602.01783)                      | cooperative collaborative competitive mixed             |                 | :heavy_check_mark:       | :heavy_check_mark:   | Independent Learning | On Policy  |
-| [DDPG](https://arxiv.org/abs/1509.02971)                     | cooperative collaborative competitive mixed             |                 |  | :heavy_check_mark:   | Independent Learning | Off Policy |
-| [TRPO](http://proceedings.mlr.press/v37/schulman15.pdf)      | cooperative collaborative competitive mixed             |                 | :heavy_check_mark:       | :heavy_check_mark:   | Independent Learning | On Policy  |
-| [PPO](https://arxiv.org/abs/1707.06347)                      | cooperative collaborative competitive mixed             |                 | :heavy_check_mark:       | :heavy_check_mark:   | Independent Learning | On Policy  |
-| [COMA](https://ojs.aaai.org/index.php/AAAI/article/download/11794/11653) | cooperative collaborative competitive mixed              | :heavy_check_mark:               | :heavy_check_mark:       |   | Centralized Critic   | On Policy  |
-| [MADDPG](https://arxiv.org/abs/1706.02275)                   | cooperative collaborative competitive mixed             | :heavy_check_mark:               |  | :heavy_check_mark:   | Centralized Critic   | Off Policy |
-| MAA2C*                                                       | cooperative collaborative competitive mixed             | :heavy_check_mark:               | :heavy_check_mark:       | :heavy_check_mark:   | Centralized Critic   | On Policy  |
-| MATRPO*                                                      | cooperative collaborative competitive mixed             | :heavy_check_mark:               | :heavy_check_mark:       | :heavy_check_mark:   | Centralized Critic   | On Policy  |
-| [MAPPO](https://arxiv.org/abs/2103.01955)                    | cooperative collaborative competitive mixed             | :heavy_check_mark:               | :heavy_check_mark:       | :heavy_check_mark:   | Centralized Critic   | On Policy  |
-| [HATRPO](https://arxiv.org/abs/2109.11251)                   | Cooperative       | :heavy_check_mark:               | :heavy_check_mark:       | :heavy_check_mark:   | Centralized Critic   | On Policy  |
-| [HAPPO](https://arxiv.org/abs/2109.11251)                    | Cooperative       | :heavy_check_mark:               | :heavy_check_mark:       | :heavy_check_mark:   | Centralized Critic   | On Policy  |
-| [VDN](https://arxiv.org/abs/1706.05296)                      | Cooperative       |                 | :heavy_check_mark:   |    | Value Decomposition  | Off Policy |
-| [QMIX](https://arxiv.org/abs/1803.11485)                     | Cooperative       | :heavy_check_mark:               | :heavy_check_mark:   |   | Value Decomposition  | Off Policy |
-| [FACMAC](https://arxiv.org/abs/2003.06709)                   | Cooperative       | :heavy_check_mark:               |  | :heavy_check_mark:   | Value Decomposition  | Off Policy |
-| [VDAC](https://arxiv.org/abs/2007.12306)                     | Cooperative       | :heavy_check_mark:               | :heavy_check_mark:       | :heavy_check_mark:   | Value Decomposition  | On Policy  |
-| VDPPO*                                                       | Cooperative       | :heavy_check_mark:               | :heavy_check_mark:       | :heavy_check_mark:   | Value Decomposition  | On Policy  |
+| algorithm                                                    | support task mode | discrete action   | continuous action |  policy type        |
+| :------------------------------------------------------------: | :-----------------: | :----------: | :--------------------: | :----------: | 
+| *IQL**                                                         | all four               | :heavy_check_mark:   |    |  off-policy |
+| *[PG](https://papers.nips.cc/paper/1713-policy-gradient-methods-for-reinforcement-learning-with-function-approximation.pdf)* | all four                  | :heavy_check_mark:       | :heavy_check_mark:   |  on-policy  |
+| *[A2C](https://arxiv.org/abs/1602.01783)*                      | all four              | :heavy_check_mark:       | :heavy_check_mark:   |  on-policy  |
+| *[DDPG](https://arxiv.org/abs/1509.02971)*                     | all four             |  | :heavy_check_mark:   |  off-policy |
+| *[TRPO](http://proceedings.mlr.press/v37/schulman15.pdf)*      | all four            | :heavy_check_mark:       | :heavy_check_mark:   |  on-policy  |
+| *[PPO](https://arxiv.org/abs/1707.06347)*                      | all four            | :heavy_check_mark:       | :heavy_check_mark:   |  on-policy  |
+| *[COMA](https://ojs.aaai.org/index.php/AAAI/article/download/11794/11653)* | all four                           | :heavy_check_mark:       |   |  on-policy  |
+| *[MADDPG](https://arxiv.org/abs/1706.02275)*                   | all four                     |  | :heavy_check_mark:   |  off-policy |
+| *MAA2C**                                                       | all four                        | :heavy_check_mark:       | :heavy_check_mark:   |  on-policy  |
+| *MATRPO**                                                      | all four                         | :heavy_check_mark:       | :heavy_check_mark:   |  on-policy  |
+| *[MAPPO](https://arxiv.org/abs/2103.01955)*                    | all four                         | :heavy_check_mark:       | :heavy_check_mark:   |  on-policy  |
+| *[HATRPO](https://arxiv.org/abs/2109.11251)*                   | cooperative                     | :heavy_check_mark:       | :heavy_check_mark:   |  on-policy  |
+| *[HAPPO](https://arxiv.org/abs/2109.11251)*                    | cooperative                     | :heavy_check_mark:       | :heavy_check_mark:   |  on-policy  |
+| *[VDN](https://arxiv.org/abs/1706.05296)*                      | cooperative         | :heavy_check_mark:   |    |  off-policy |
+| *[QMIX](https://arxiv.org/abs/1803.11485)*                     | cooperative                    | :heavy_check_mark:   |   |  off-policy |
+| *[FACMAC](https://arxiv.org/abs/2003.06709)*                   | cooperative                    |  | :heavy_check_mark:   |  off-policy |
+| *[VDAC](https://arxiv.org/abs/2007.12306)*                    | cooperative                    | :heavy_check_mark:       | :heavy_check_mark:   |  on-policy  |
+| *VDPPO**                                                      | cooperative                | :heavy_check_mark:       | :heavy_check_mark:   |  on-policy  |
+
+***all four**: cooperative collaborative competitive mixed
 
 *IQL* is the multi-agent version of Q learning.
 *MAA2C* and *MATRPO* are the centralized version of A2C and TRPO.
 *VDPPO* is the value decomposition version of PPO.
 
+</details>
+
+<details>
+<summary><b><big>Build the agent model</big></b></summary>
+
+An agent model consists of two parts, `encoder` and `core arch`. 
+`encoder` will be constructed by MARLlib according to the observation space.
+Choose `mlp`, `gru`, or `lstm` as you like to build the complete model.
+
+|  model arch   | api example |
+| :-----------: | ----------- |
+| MLP  | ```marl.build_model(env, algo, {"core_arch": "mlp")``` |
+| GRU | ```marl.build_model(env, algo, {"core_arch": "gru"})```  |
+| LSTM | ```marl.build_model(env, algo, {"core_arch": "lstm"})```  |
+| encoder arch | ```marl.build_model(env, algo, {"core_arch": "gru", "encode_layer": "128-256"})```  |
 
 
-### Environment-Algorithm Combination
+</details>
 
-Y for available, N for not suitable, P for partially available on some scenarios.
-(Note: in our code, independent algorithms may not have **I** as prefix. For instance, PPO = IPPO)
+<details>
+<summary><b><big>Kick off the training</big></b></summary>
 
-| Env w Algorithm | IQL  | PG   | A2C  | DDPG | TRPO | PPO  | COMA | MADDPG | MAAC | MATRPO | MAPPO | HATRPO | HAPPO | VDN  | QMIX | FACMAC | VDAC | VDPPO |
-| --------------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ------ | ---- | ------ | ----- | ------ | ----- | ---- | ---- | ------ | ---- | ----- |
-| LBF             | Y    | Y    | Y    | N    | Y    | Y    | Y    | N      | Y    | Y      | Y     | Y      | Y     | P    | P    | P      | P    | P     |
-| RWARE           | Y    | Y    | Y    | N    | Y    | Y    | Y    | N      | Y    | Y      | Y     | Y      | Y     | Y    | Y    | Y      | Y    | Y     |
-| MPE             | P    | Y    | Y    | P    | Y    | Y    | P    | P      | Y    | Y      | Y     | Y      | Y     | Y    | Y    | Y      | Y    | Y     |
-| SMAC            | Y    | Y    | Y    | N    | Y    | Y    | Y    | N      | Y    | Y      | Y     | Y      | Y     | Y    | Y    | Y      | Y    | Y     |
-| MetaDrive       | N    | Y    | Y    | Y    | Y    | Y    | N    | N      | N    | N      | N     | N      | N     | N    | N    | N      | N    | N     |
-| MAgent          | Y    | Y    | Y    | N    | Y    | Y    | Y    | N      | Y    | Y      | Y     | Y      | Y     | N    | N    | N      | N    | N     |
-| Pommerman       | Y    | Y    | Y    | N    | Y    | Y    | P    | N      | Y    | Y      | Y     | Y      | Y     | P    | P    | P      | P    | P     |
-| MAMuJoCo        | N    | Y    | Y    | Y    | Y    | Y    | N    | Y      | Y    | Y      | Y     | Y      | Y     | N    | N    | Y      | Y    | Y     |
-| GRF             | Y    | Y    | Y    | N    | Y    | Y    | Y    | N      | Y    | Y      | Y     | Y      | Y     | Y    | Y    | Y      | Y    | Y     |
-| Hanabi          | Y    | Y    | Y    | N    | Y    | Y    | Y    | N      | Y    | Y      | Y     | Y      | Y     | N    | N    | N      | N    | N     |
+|  setting   | api example |
+| :-----------: | ----------- |
+| train  | ```algo.fit(env, model)``` |
+| debug  | ```algo.fit(env, model, local_mode=True)``` |
+| stop condition | ```algo.fit(env, model, stop={'episode_reward_mean': 2000, 'timesteps_total': 10000000})```  |
+| policy sharing | ```algo.fit(env, model, share_policy='all') # or 'group' / 'individual'```  |
+| save model | ```algo.fit(env, model, checkpoint_freq=100, checkpoint_end=True)```  |
+| GPU accelerate  | ```algo.fit(env, model, local_mode=False, num_gpus=1)``` |
+| CPU accelerate | ```algo.fit(env, model, local_mode=False, num_workers=5)```  |
 
-You can find a comprehensive list of existing MARL algorithms in different environments  [here](https://github.com/Replicable-MARL/MARLlib/tree/main/envs).
+</details>
 
+<details>
+<summary><b><big>Training & rendering API</big></b></summary>
 
+```py
+from marllib import marl
 
-### Why MARLlib?
-
-Here we provide a table for the comparison of MARLlib and existing work.
-
-|   Library   | Github Stars | Task Mode | Supported Env | Algorithm | Parameter Sharing  | Asynchronous Interact | Framework
-|:-------------:|:-------------:|:-------------:|:-------------:|:--------------:|:----------------:|:-----------------:|:---------------------:
-|     [PyMARL](https://github.com/oxwhirl/pymarl) | [![GitHub stars](https://img.shields.io/github/stars/oxwhirl/pymarl)](https://github.com/oxwhirl/pymarl/stargazers)    |       cooperative      |       1       |       Independent Learning(1) + Centralized Critic(1) + Value Decomposition(3)       |         full-sharing        |                   | *
-|    [PyMARL2](https://github.com/hijkzzz/pymarl2) | [![GitHub stars](https://img.shields.io/github/stars/hijkzzz/pymarl2)](https://github.com/hijkzzz/pymarl2/stargazers)    |       cooperative      |       1       |       Independent Learning(1) +  Centralized Critic(1) +  Value Decomposition(9)     |         full-sharing        |                   |   PyMARL
-|   [MARL-Algorithms](https://github.com/starry-sky6688/MARL-Algorithms)| [![GitHub stars](https://img.shields.io/github/stars/starry-sky6688/MARL-Algorithms)](https://github.com/starry-sky6688/MARL-Algorithms/stargazers)  |       cooperative      |       1       |     CTDE(6) + Communication(1) + Graph(1) + Multi-task(1)   |         full-sharing        |  | *
-|    [EPyMARL](https://github.com/uoe-agents/epymarl)| [![GitHub stars](https://img.shields.io/github/stars/uoe-agents/epymarl)](https://github.com/hijkzzz/uoe-agents/epymarl/stargazers)    |       cooperative      |       4       |    Independent Learning(3) + Value Decomposition(4) + Centralized Critic(2)    |        full-sharing + non-sharing       |                   |           PyMARL            | 
-| [MAlib](https://github.com/sjtu-marl/malib) | [![GitHub stars](https://img.shields.io/github/stars/sjtu-marl/malib)](https://github.com/hijkzzz/sjtu-marl/malib/stargazers) | self-play | 2 +  [PettingZoo](https://www.pettingzoo.ml/) + [OpenSpiel](https://github.com/deepmind/open_spiel) | Population-based | full-sharing + group-sharing + non-sharing | :heavy_check_mark: | *
-| [MAPPO Benchmark](https://github.com/marlbenchmark/on-policy)| [![GitHub stars](https://img.shields.io/github/stars/marlbenchmark/on-policy)](https://github.com/marlbenchmark/on-policy/stargazers) |     cooperative     |       4       |      MAPPO(1)     |         full-sharing + non-sharing        |         :heavy_check_mark:         |         pytorch-a2c-ppo-acktr-gail              |
-|    [MARLlib](https://github.com/Replicable-MARL/MARLlib)| |  cooperative collaborative competitive mixed  |       10 + [PettingZoo](https://www.pettingzoo.ml/)      |    Independent Learning(6) + Centralized Critic(7) + Value Decomposition(5)     |        full-sharing + group-sharing + non-sharing        |         :heavy_check_mark:         |           Ray/Rllib           |
-
-
-## Installation
-
-
-To use MARLlib, first install MARLlib, then install desired environments following [this guide](https://marllib.readthedocs.io/en/latest/handbook/env.html), finally install patches for RLlib. After installation, training can be launched by following the usage section below.
-
-
-### Install MARLlib
-
-```bash
-conda create -n marllib python==3.8
-conda activate marllib
-# please install pytorch <= 1.9.1 compatible with your hardware.
-
-pip install ray==1.8.0
-pip install ray[tune]
-pip install ray[rllib]
-
-git clone https://github.com/Replicable-MARL/MARLlib.git
-cd MARLlib
-pip install -e .
-pip install icecream && pip install supersuit && pip install gym==0.21.0 && pip install importlib-metadata==4.13.0 
+# prepare env
+env = marl.make_env(environment_name="mpe", map_name="simple_spread")
+# initialize algorithm with appointed hyper-parameters
+mappo = marl.algos.mappo(hyperparam_source="mpe")
+# build agent model based on env + algorithms + user preference
+model = marl.build_model(env, mappo, {"core_arch": "mlp", "encode_layer": "128-256"})
+# start training
+mappo.fit(env, model, stop={"timesteps_total": 1000000}, checkpoint_freq=100, share_policy="group")
+# rendering(optional)
+mappo.render(env, model, local_mode=True, restore_path='path_to_model')
 ```
+</details>
 
-
-### Install environments
-
-Please follow [this guide](https://marllib.readthedocs.io/en/latest/handbook/env.html).
-
-### Install patches for RLlib
-
-We fix bugs of RLlib by providing patches. After installing Ray, run the following command:
-
-```bash
-cd /Path/To/MARLlib/patch
-python add_patch.py -y
-```
-
-If pommerman is installed and used as your testing bed, run
-
-```bash
-cd /Path/To/MARLlib/patch
-python add_patch.py -y -p
-```
-follow the guide [here](https://marllib.readthedocs.io/en/latest/handbook/env.html#pommerman) before you starting training.
-
-
-## Usage
-
-### Step 1. Prepare the configuration files
-
-<div align="center">
-<img src=image/configurations.png width=100% />
-</div>
-
-There are four configuration files you need to ensure correctness for your training demand. 
-
-- scenario: specify your environment/task settings
-- algorithm: finetune your algorithm hyperparameters
-- model: customize the model architecture
-- ray/rllib: changing the basic training settings
-
-### Step 2. Making sure all the dependency are installed for your environment.
-
-You can refer to [here](https://marllib.readthedocs.io/en/latest/handbook/env.html) to install the environment.
-After everything settled, make sure to change back you Gym version to 0.21.0.
-All environment MARLlib supported should work fine with this version.
-
-```bash
-pip install gym==0.21.0
-```
-
-### Step 3. Start training
-
-```bash
-cd /Path/To/MARLlib
-python marl/main.py --algo_config=$algo [--finetuned] --env_config=$env with env_args.map_name=$map
-```
-
-Available algorithms (case sensitive):
-
-- iql
-- pg
-- a2c
-- ddpg
-- trpo
-- ppo
-- maa2c
-- coma
-- maddpg
-- matrpo
-- mappo
-- hatrpo
-- happo
-- vdn
-- qmix
-- facmac
-- vda2c
-- vdppo
-
-Available env-map pairs (case sensitive):
-
-- smac: [smac maps](https://github.com/oxwhirl/smac/blob/master/smac/env/starcraft2/maps/smac_maps.py)
-- mpe: [mpe map](https://github.com/Replicable-MARL/MARLlib/blob/main/envs/base_env/mpe.py)
-- mamujoco: [mamujoco map](https://github.com/Replicable-MARL/MARLlib/blob/main/envs/base_env/mamujoco.py)
-- football: [football map](https://github.com/Replicable-MARL/MARLlib/blob/main/envs/base_env/mamujoco.py)
-- magent: [magent map](https://github.com/Replicable-MARL/MARLlib/blob/main/envs/base_env/magent.py)
-- lbf: use [lbf config](https://github.com/Replicable-MARL/MARLlib/blob/main/envs/base_env/config/lbf.yaml) to generate the map. Details can be found https://github.com/semitable/lb-foraging#usage
-- rware: use [rware config](https://github.com/Replicable-MARL/MARLlib/blob/main/envs/base_env/config/rware.yaml) to generate the map. Details can be found https://github.com/semitable/robotic-warehouse#naming-scheme
-- pommerman: OneVsOne-v0, PommeFFACompetition-v0, PommeTeamCompetition-v0
-- metadrive: Bottleneck, ParkingLot, Intersection, Roundabout, Tollgate
-- hanabi: Hanabi-Very-Small, Hanabi-Full, Hanabi-Full-Minimal, Hanabi-Small
-
---finetuned is optional, force using the finetuned hyperparameter if available in [this directory](https://github.com/Replicable-MARL/MARLlib/tree/main/marl/algos/hyperparams/finetuned)
-
-
-Example on SMAC (you need install SMAC environment follow the guide [here](https://marllib.readthedocs.io/en/latest/handbook/env.html#smac)):
-
-```bash
-python marl/main.py --algo_config=mappo [--finetuned] --env_config=smac with env_args.map_name=3m
-```
-
---finetuned is optional, force using the finetuned hyperparameter if available.
-
-## Docker
-
-We also provide docker-based usage for MARLlib. 
-Before use, make sure [docker](https://docs.docker.com/desktop/install/linux-install/) is installed on your machine.
-
-Note: You need root access to use docker.
-
-### Ready to Go Image
-
-We prepare a docker image ready for MARLlib to run. [link](https://hub.docker.com/repository/docker/iclr2023paper4242/marllib)
-
-```bash
-docker pull iclr2023paper4242/marllib:1.0
-docker run -d -it --rm --gpus all iclr2023paper4242/marllib:1.0
-docker exec -it [container_name] # you can get container_name by this command: docker ps
-# launch the training
-python marl/main.py --algo_config=mappo --env_config=lbf with env_args.map_name=lbf-8x8-2p-2f-3s-c
-```
-
-### Alternatively, you can build your image on your local machine with two options: GPU or CPU only
-
-#### Use GPU in docker
-
-To use CUDA in MARLlib docker container, please first install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
-
-To build MARLlib docker image, use the following command:
-
-```bash
-git clone https://github.com/Replicable-MARL/MARLlib.git
-cd MARLlib
-bash docker/build.sh
-```
-
-Run `docker run --itd --rm --gpus all marllib:1.0` to create a new container and make GPU visible inside the container. Then attach into the container and run experiments:
-
-```bash
-docker attach [your_container_name] # you can get container_name by this command: docker ps
-# now we are in docker /workspace/MARLlib
-# modify config file ray.yaml to enable GPU use
-# launch the training
-python marl/main.py --algo_config=mappo --env_config=lbf with env_args.map_name=lbf-8x8-2p-2f-3s-c
-```
-
-#### Only use CPU in docker
-
-To build MARLlib docker image, use the following command:
-
-```bash
-git clone https://github.com/Replicable-MARL/MARLlib.git
-cd MARLlib
-bash docker/build.sh
-```
-
-Run `docker run -d -it marllib:1.0` to create a new container. Then attach into the container and run experiments:
-
-```bash
-docker attach [your_container_name] # you can get container_name by this command: docker ps
-# now we are in docker /workspace/MARLlib
-# launch the training
-python marl/main.py --algo_config=mappo --env_config=lbf with env_args.map_name=lbf-8x8-2p-2f-3s-c
-```
-
-Note we only pre-install [LBF](https://iclr2023marllib.readthedocs.io/en/latest/handbook/env.html#lbf) in the target container marllib:1.0 as a fast example. All running/algorithm/task configurations are kept unchanged.
-
-
-## Navigation
-
-We provide an introduction to the code directory to help you get familiar with the codebase.
-
-**Top level directory structure:**
-
-<div align="center">
-<img src=image/code-MARLlib.png width=120% />
-</div>
-
-**MARL directory structure:**
-
-<div align="center">
-<img src=image/code-MARL.png width=70% />
-</div>
-
-**ENVS directory structure:**
-
-<div align="center">
-<img src=image/code-ENVS.png width=70% />
-</div>
-
-
-## Experiment Results
+## Benchmark results
 
 All results are listed [here](https://github.com/Replicable-MARL/MARLlib/tree/main/results).
 
-## Bug Shooting
+## Quick examples
 
-- Environment side bug: e.g., SMAC is not installed properly.
-    - Cause of bug: environment not installed properly (dependency, version, ...)
-    - Solution: find the bug description in the log printed, especailly the table status at the initial part.
-- Gym related bug:
-    - Cause of bug: gym version required by RLlib and Environment has conflict
-    - Solution: always change gym version back to 0.21.0 after new package installation.
-- Package missing:
-    - Cause of bug: miss installing package or incorrect Python Path
-    - Solution: install the package and check you current PYTHONPATH
-    
-    
+MARLlib provides some practical examples for you to refer to.
+
+- [Detailed API usage](https://github.com/Replicable-MARL/MARLlib/blob/sy_dev/examples/api_basic_usage.py): show how to use MARLlib api in
+  detail, e.g. cmd + api combined running.
+- [Policy sharing cutomization](https://github.com/Replicable-MARL/MARLlib/blob/sy_dev/examples/customize_policy_sharing.py):
+  define your group policy-sharing strategy as you like based on current tasks.
+- [Loading model and rendering](https://github.com/Replicable-MARL/MARLlib/blob/sy_dev/examples/load_and_render_model.py):
+  render the environment based on the pre-trained model.
+- [Incorporating new environment to MARLlib](https://github.com/Replicable-MARL/MARLlib/blob/sy_dev/examples/add_new_env.py):
+  add your new environment following MARLlib's env-agent interaction interface.
+
+## Tutorials
+
+Try MPE + MAPPO examples on Google Colaboratory!
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Replicable-MARL/MARLlib/blob/sy_dev/marllib.ipynb)
+
+More tutorial documentations are available [here](https://marllib.readthedocs.io/).
+
+## Community
+
+|  Channel   | Link |
+| :----------- | :----------- |
+| Issues | [GitHub Issues](https://github.com/Replicable-MARL/MARLlib/issues) |
+
+
+## Contributing
+
+We are a small team on multi-agent reinforcement learning, and we will take all the help we can get! 
+If you would like to get involved, here is information on [contribution guidelines and how to test the code locally](https://github.com/Replicable-MARL/MARLlib/blob/sy_dev/CONTRIBUTING.md).
+
+You can contribute in multiple ways, e.g., reporting bugs, writing or translating documentation, reviewing or refactoring code, requesting or implementing new features, etc.
+
+[comment]: <> (## Paper)
+
+[comment]: <> (If you use MARLlib in your research, please cite the [MARLlib paper]&#40;https://arxiv.org/abs/2210.13708&#41;.)
+
+[comment]: <> (```tex)
+
+[comment]: <> (@article{hu2022marllib,)
+
+[comment]: <> (  title={MARLlib: Extending RLlib for Multi-agent Reinforcement Learning},)
+
+[comment]: <> (  author={Hu, Siyi and Zhong, Yifan and Gao, Minquan and Wang, Weixun and Dong, Hao and Li, Zhihui and Liang, Xiaodan and Chang, Xiaojun and Yang, Yaodong},)
+
+[comment]: <> (  journal={arXiv preprint arXiv:2210.13708},)
+
+[comment]: <> (  year={2022})
+
+[comment]: <> (})
+
+[comment]: <> (```)
+
