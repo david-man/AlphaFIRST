@@ -36,8 +36,9 @@ class Base_Encoder(nn.Module):
                 for i in range(self.custom_config["model_arch_args"]["fc_layer"]):
                     out_dim = self.custom_config["model_arch_args"]["out_dim_fc_{}".format(i)]
                     encoder_layer_dim.append(out_dim)
-
+            
             self.encoder_layer_dim = encoder_layer_dim
+            
             input_dim = obs_space['obs'].shape[0]
             for out_dim in self.encoder_layer_dim:
                 layers.append(
@@ -70,7 +71,7 @@ class Base_Encoder(nn.Module):
         self.output_dim = input_dim  # record
         self.encoder = nn.Sequential(*layers)
 
-    def forward(self, inputs) -> (TensorType, List[TensorType]):
+    def forward(self, inputs):
         B = inputs.shape[0]
         # Compute the unmasked logits.
         if "conv_layer" in self.custom_config["model_arch_args"]:
@@ -87,6 +88,7 @@ class Base_Encoder(nn.Module):
                 output = torch.mean(x, (2, 3))
         else:
             self.inputs = inputs.reshape(inputs.shape[0], -1)
+            #print(self.inputs)
             output = self.encoder(inputs)
 
         return output

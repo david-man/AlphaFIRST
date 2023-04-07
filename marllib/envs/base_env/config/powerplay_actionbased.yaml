@@ -1,0 +1,8 @@
+env: powerplay_actionbased
+
+env_args:
+  map_name: "powerplay" # others can be found in magent.py
+  seed: 1
+mask_flag: True
+global_state_flag: False
+opp_action_in_cc: True

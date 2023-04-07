@@ -103,11 +103,16 @@ class Base_RNN(TorchRNN, nn.Module):
     @override(ModelV2)
     def forward(self, input_dict: Dict[str, TensorType],
                 state: List[TensorType],
-                seq_lens: TensorType) -> (TensorType, List[TensorType]):
+                seq_lens: TensorType):
+        if(input_dict["obs"]["obs"][0][29] == 0):
+            print(state[0].shape)
         """
         Adds time dimension to batch before sending inputs to forward_rnn()
         """
+        #print(input_dict["obs"]["obs"][0])
+        # print(seq_lens)
         if self.custom_config["global_state_flag"] or self.custom_config["mask_flag"]:
+            
             flat_inputs = input_dict["obs"]["obs"].float()
             # Convert action_mask into a [0.0 || -inf]-type mask.
             if self.custom_config["mask_flag"]:
@@ -115,12 +120,13 @@ class Base_RNN(TorchRNN, nn.Module):
                 inf_mask = torch.clamp(torch.log(action_mask), min=FLOAT_MIN)
         else:
             flat_inputs = input_dict["obs"]["obs"].float()
-
+        
         if isinstance(seq_lens, np.ndarray):
             seq_lens = torch.Tensor(seq_lens).int()
         max_seq_len = flat_inputs.shape[0] // seq_lens.shape[0]
-
+        
         self.time_major = self.model_config.get("_time_major", False)
+        # print(self.time_major)
         inputs = add_time_dimension(
             flat_inputs,
             max_seq_len=max_seq_len,
@@ -128,19 +134,27 @@ class Base_RNN(TorchRNN, nn.Module):
             time_major=self.time_major,
         )
         output, new_state = self.forward_rnn(inputs, state, seq_lens)
+        
+        
         output = torch.reshape(output, [-1, self.num_outputs])
-
+        print(sum(output[0]))
         if self.custom_config["mask_flag"]:
             output = output + inf_mask
-
+        
+        
+        
         return output, new_state
 
     @override(TorchRNN)
     def forward_rnn(self, inputs, state, seq_lens):
         self.inputs = inputs
-
+        
+        #print(self.inputs)
+        #print(self.full_obs_space)
+        #print(self.inputs.shape)
         x = self.p_encoder(self.inputs)
-
+        
+        
         if self.custom_config["model_arch_args"]["core_arch"] == "gru":
             self._features, h = self.rnn(x, torch.unsqueeze(state[0], 0))
             logits = self.p_branch(self._features)

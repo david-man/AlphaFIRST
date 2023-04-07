@@ -147,3 +147,4 @@ def run_cc(algo_config, env, model, stop=None):
                                                         restore)
 
     ray.shutdown()
+    return results

@@ -1,5 +1,5 @@
 from marllib.marl.common import *
-from marllib.marl.algos import run_il, run_vd, run_cc
+from marllib.marl.algos import run_il, run_vd, run_cc, run_test
 from marllib.marl.algos.scripts import POlICY_REGISTRY
 from marllib.envs.base_env import ENV_REGISTRY
 from marllib.envs.global_reward_env import COOP_ENV_REGISTRY
@@ -260,13 +260,37 @@ class _Algo:
         elif self.algo_type == "VD":
             run_vd(self.config_dict, env_instance, model_class, stop=stop)
         elif self.algo_type == "CC":
-            run_cc(self.config_dict, env_instance, model_class, stop=stop)
+            return run_cc(self.config_dict, env_instance, model_class, stop=stop)
         else:
             raise ValueError("not supported type {}".format(self.algo_type))
 
     def render(self, env, model, stop=None, **running_params):
         # current reuse the fit function
         self.fit(env, model, stop, **running_params)
+    def test(self, env, model, stop=None, **running_params):
+        env_instance, info = env
+        
+        model_class, model_info = model
+
+        self.config_dict = info
+        
+        self.config_dict = recursive_dict_update(self.config_dict, model_info)
+
+        self.config_dict = recursive_dict_update(self.config_dict, self.algo_parameters)
+        self.config_dict = recursive_dict_update(self.config_dict, running_params)
+
+        self.config_dict['algorithm'] = self.name
+        
+
+        if self.algo_type == "IL":
+            run_il(self.config_dict, env_instance, model_class, stop=stop)
+        elif self.algo_type == "VD":
+            run_vd(self.config_dict, env_instance, model_class, stop=stop)
+        elif self.algo_type == "CC":
+            run_test.run_test(self.config_dict, env_instance, model_class, stop=stop)
+        else:
+            raise ValueError("not supported type {}".format(self.algo_type))
+
 
 
 class _AlgoManager:

@@ -76,7 +76,7 @@ def run_mappo(model_class, config_dict, common_config, env_dict, stop, restore):
         model_path = restore["model_path"]
     else:
         model_path = None
-
+    
     results = tune.run(MAPPOTrainer,
                        name=RUNNING_NAME,
                        checkpoint_at_end=config_dict['checkpoint_end'],
